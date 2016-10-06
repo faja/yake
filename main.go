@@ -44,7 +44,7 @@ func main() {
     os.Exit(1)
   }
   // execute steps
-  for _,command := range tasks["task1"].Steps {
+  for _,command := range tasks[*flagTask].Steps {
     taskSplitted := strings.Split(command, " ")
     fmt.Println(">>>", command)
     cmd := exec.Command(taskSplitted[0], taskSplitted[1:]...)

@@ -1,0 +1,9 @@
+task1:
+  steps:
+    - echo task1 step1
+    - date -R
+    - uptime
+task2:
+  steps:
+  - echo task2 step3
+  - echo task2 step4
