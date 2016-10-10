@@ -8,3 +8,8 @@ example usage:
 >>> tar -xvf foo.yml.tar
 >>> ls foo.yml
 ```
+flags:
+
+* `-task TASKNAME` - specify task name, default: `default`
+* `-file FILENAME` - specify yake file name, default: `yakefile.yml`
+* `-keepgoing` - yake continues to execute all remaining steps even if one of them fails, default: `false`

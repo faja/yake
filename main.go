@@ -13,8 +13,9 @@ import (
 func main() {
 
   // argument parsing
-  flagTask := flag.String("task", "all", "task to execute")
+  flagTask := flag.String("task", "default", "task to execute")
   flagFile := flag.String("file", "yakefile.yml", "yake file")
+  flagKeepgoing := flag.Bool("keepgoing", false, "execute remaining steps even one of them fails")
   flag.Parse()
 
   // variables parsing
@@ -63,8 +64,9 @@ func main() {
     // TODO: add printing STDOUT and STDERR
     if err := cmd.Run(); err != nil {
       fmt.Println(err)
-      // TODO: add -keepgoing flag
-      os.Exit(1)
+      if ! *flagKeepgoing {
+        os.Exit(1)
+      }
     }
   }
 }
