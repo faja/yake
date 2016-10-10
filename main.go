@@ -1,6 +1,7 @@
 package main
 
 import (
+  "bytes"
   "flag"
   "fmt"
   "gopkg.in/yaml.v2"
@@ -16,6 +17,8 @@ func main() {
   flagTask := flag.String("task", "default", "task to execute")
   flagFile := flag.String("file", "yakefile.yml", "yake file")
   flagKeepgoing := flag.Bool("keepgoing", false, "execute remaining steps even one of them fails")
+  flagStdout := flag.Bool("stdout", false, "prints stdout")
+  flagStderr := flag.Bool("stderr", false, "prints stderr")
   flag.Parse()
 
   // variables parsing
@@ -61,12 +64,31 @@ func main() {
     fmt.Println(">>>", command)
     cmd := exec.Command(taskSplitted[0], taskSplitted[1:]...)
 
-    // TODO: add printing STDOUT and STDERR
-    if err := cmd.Run(); err != nil {
-      fmt.Println(err)
-      if ! *flagKeepgoing {
-        os.Exit(1)
+    // output buffers
+    cmdStdout := &bytes.Buffer{}
+    cmdStderr := &bytes.Buffer{}
+    cmd.Stdout = cmdStdout
+    cmd.Stderr = cmdStderr
+
+    err := cmd.Run()
+
+    // print stdout
+    if *flagStdout {
+      if len(cmdStdout.Bytes()) > 0 {
+        fmt.Printf("%s\n", cmdStdout.Bytes())
       }
+    }
+
+    // print stderr
+    if *flagStderr {
+      if len(cmdStderr.Bytes()) > 0 {
+        os.Stderr.WriteString(fmt.Sprintf("%s\n", cmdStderr.Bytes()))
+      }
+    }
+
+    // keepgoing?
+    if err != nil && ! *flagKeepgoing {
+      os.Exit(1)
     }
   }
 }
