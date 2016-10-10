@@ -17,9 +17,9 @@ func main() {
   // argument parsing
   flagTask := flag.String("task", "default", "task to execute")
   flagFile := flag.String("file", "yakefile.yml", "yake file")
-  flagKeepgoing := flag.Bool("keepgoing", false, "execute remaining steps even one of them fails")
-  flagStdout := flag.Bool("stdout", false, "prints stdout")
-  flagStderr := flag.Bool("stderr", false, "prints stderr")
+  flagKeepgoing := flag.Bool("keepgoing", false, "execute remaining steps even one of them fails (default false)")
+  flagStdout := flag.Bool("stdout", false, "prints stdout (default false)")
+  flagStderr := flag.Bool("stderr", false, "prints stderr (default false)")
   flag.Parse()
 
   // variables parsing
