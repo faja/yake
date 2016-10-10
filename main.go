@@ -15,21 +15,39 @@ import (
 func main() {
 
   // argument parsing
-  flagTask := flag.String("task", "default", "task to execute")
-  flagFile := flag.String("file", "yakefile.yml", "yake file")
+  flagFile := flag.String("file", "Yakefile", "yake file")
   flagKeepgoing := flag.Bool("keepgoing", false, "execute remaining steps even one of them fails (default false)")
   flagStdout := flag.Bool("stdout", false, "prints stdout (default false)")
   flagStderr := flag.Bool("stderr", false, "prints stderr (default false)")
   flag.Parse()
 
-  // variables parsing
+  // arguments parsing
+  // any argument containing = character it's a variable
+  // first argument is a task name
+  // all other arguments create CMD variable, which can be used in `steps`
+  var task string
+  var defaultCmd string
   variables := make(map[string]string)
+
   for _, v := range flag.Args() {
     vSplited := strings.Split(v, "=")
     if len(vSplited) < 2 {
-      fmt.Println("[ERROR]",v,"variable syntax incorrect, try NAME=VALUE")
+      if len(task) == 0 {
+        task = vSplited[0]
+      } else {
+        if len(defaultCmd) > 0 {
+          defaultCmd += " "
+        }
+        defaultCmd += vSplited[0]
+      }
+    } else {
+      variables[vSplited[0]] = vSplited[1]
     }
-    variables[vSplited[0]] = vSplited[1]
+  }
+  // task name defined?
+  if len(task) == 0 {
+    fmt.Println("Please specify task name")
+    os.Exit(1)
   }
 
   // YAML file structs
@@ -52,15 +70,17 @@ func main() {
   }
 
   // does task exist?
-  if _, ok := tasks[*flagTask]; ok != true {
-    fmt.Println("Couldn't find task", *flagTask, "in the yakefile")
+  if _, ok := tasks[task]; ok != true {
+    fmt.Println("Couldn't find task", task, "in the yakefile")
     os.Exit(1)
   }
   // execute steps
-  for _,command := range tasks[*flagTask].Steps {
+  for _,command := range tasks[task].Steps {
     for k,v := range variables {
       command = strings.Replace(command,"$"+k,v,-1)
     }
+    // CMD variable
+    command = strings.Replace(command,"$CMD",defaultCmd,-1)
     taskSplitted := strings.Split(command, " ")
     fmt.Println(">>>", command)
     cmd := exec.Command(taskSplitted[0], taskSplitted[1:]...)
