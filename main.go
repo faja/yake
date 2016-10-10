@@ -9,6 +9,7 @@ import (
   "os"
   "os/exec"
   "strings"
+  "syscall"
 )
 
 func main() {
@@ -88,7 +89,8 @@ func main() {
 
     // keepgoing?
     if err != nil && ! *flagKeepgoing {
-      os.Exit(1)
+      os.Stderr.WriteString(fmt.Sprintf("%s\n", err.Error()))
+      os.Exit(cmd.ProcessState.Sys().(syscall.WaitStatus).ExitStatus())
     }
   }
 }
