@@ -15,9 +15,17 @@ func main() {
   // argument parsing
   flagTask := flag.String("task", "all", "task to execute")
   flagFile := flag.String("file", "yakefile.yml", "yake file")
-  // TODO: add passing variables
-  //flagVars := flag.String("vars", "", "variables to pass")
   flag.Parse()
+
+  // variables parsing
+  variables := make(map[string]string)
+  for _, v := range flag.Args() {
+    vSplited := strings.Split(v, "=")
+    if len(vSplited) < 2 {
+      fmt.Println("[ERROR]",v,"variable syntax incorrect, try NAME=VALUE")
+    }
+    variables[vSplited[0]] = vSplited[1]
+  }
 
   // YAML file structs
   type Task struct {
@@ -45,6 +53,9 @@ func main() {
   }
   // execute steps
   for _,command := range tasks[*flagTask].Steps {
+    for k,v := range variables {
+      command = strings.Replace(command,"$"+k,v,-1)
+    }
     taskSplitted := strings.Split(command, " ")
     fmt.Println(">>>", command)
     cmd := exec.Command(taskSplitted[0], taskSplitted[1:]...)
