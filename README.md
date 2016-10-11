@@ -59,7 +59,7 @@ task_with_CMD:
 
 ## flags:
 
-* `-file FILENAME` - specify yake file name, default: `yakefile.yml`
+* `-file FILENAME` - specify yake file name, default: `Yakefile`
 * `-keepgoing` - yake continues to execute all remaining steps even if one of them fails, default: `false`
 * `-stdout` - prints STDOUT of executing steps, default: `false`
 * `-stderr` - print STDERR  of executing steps, default: `false`
