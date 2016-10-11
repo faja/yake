@@ -21,6 +21,7 @@ func main() {
   flagStderr := flag.Bool("stderr", false, "prints stderr (default false)")
   flag.Parse()
 
+
   // arguments parsing
   // any argument containing = character it's a variable
   // first argument is a task name
@@ -50,9 +51,10 @@ func main() {
     os.Exit(1)
   }
 
-  // YAML file structs
+  // YAML file struct
   type Task struct {
     Steps []string
+    Vars map[string]string
   }
 
   // read the yakefile
@@ -74,6 +76,14 @@ func main() {
     fmt.Println("Couldn't find task", task, "in the yakefile")
     os.Exit(1)
   }
+
+  // use default variable value if not specified in command line
+  for k,v := range tasks[task].Vars {
+    if _, ok := variables[k]; ok != true {
+      variables[k] = v
+    }
+  }
+
   // execute steps
   for _,command := range tasks[task].Steps {
     for k,v := range variables {
