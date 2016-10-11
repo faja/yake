@@ -1,7 +1,7 @@
 yake = **Y**et**A**notherma**K**eclon**E**
 
 ## example usage:
-`yake -file Yakefile.yml -stdout SOMEVAR=foo taskname CMD argumets here`
+`yake -file Yakefile.yml -stdout [SOMEVAR=foo] taskname [CMD argumets here]
 
 #### simple_task
 ```yaml
