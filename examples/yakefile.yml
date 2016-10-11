@@ -1,9 +1,17 @@
-task1:
+simple_task:
+  steps:
+    - echo hello yake
+    - uptime
+    - date
+
+task_with_variables:
   steps:
     - cp /tmp/$NAME.yml.tar .
     - tar -xvf $NAME.yml.tar
     - ls $NAME.yml
-task2:
+  vars:
+    NAME: foo
+
+task_with_CMD:
   steps:
-  - echo task2 step3 $VARIABLE1
-  - echo task2 step4 $VARIABLE2
+    - echo $CMD
