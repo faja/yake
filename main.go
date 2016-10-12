@@ -21,7 +21,6 @@ func main() {
   flagStderr := flag.Bool("stderr", false, "prints stderr (default false)")
   flag.Parse()
 
-
   // arguments parsing
   // any argument containing = character it's a variable
   // first argument is a task name
@@ -42,7 +41,7 @@ func main() {
         defaultCmd += vSplited[0]
       }
     } else {
-      variables[vSplited[0]] = vSplited[1]
+      variables[vSplited[0]] = strings.Join(vSplited[1:], "=")
     }
   }
   // task name defined?
@@ -55,6 +54,9 @@ func main() {
   type Task struct {
     Steps []string
     Vars map[string]string
+    Keepgoing bool
+    Stdout bool
+    Stderr bool
   }
 
   // read the yakefile
@@ -77,8 +79,15 @@ func main() {
     os.Exit(1)
   }
 
-  // use default variable value if not specified in command line
+  // use default variable value from task definition if not specified in command line
   for k,v := range tasks[task].Vars {
+    if _, ok := variables[k]; ok != true {
+      variables[k] = v
+    }
+  }
+
+  // use default variable from _config if not specified anywhere else
+  for k,v := range tasks["_config"].Vars {
     if _, ok := variables[k]; ok != true {
       variables[k] = v
     }
