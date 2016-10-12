@@ -21,6 +21,11 @@ func main() {
   flagStderr := flag.Bool("stderr", false, "prints stderr (default false)")
   flag.Parse()
 
+  flagsSet := make(map[string]bool)
+  for _,v := range os.Args[1:flag.NFlag()+1] {
+    flagsSet[strings.Split(v, "=")[0]] = true
+  }
+
   // arguments parsing
   // any argument containing = character it's a variable
   // first argument is a task name
@@ -91,6 +96,17 @@ func main() {
     if _, ok := variables[k]; ok != true {
       variables[k] = v
     }
+  }
+
+  // _config parsing
+  if tasks["_config"].Keepgoing && ! flagsSet["-keepgoing"] {
+    *flagKeepgoing = tasks["_config"].Keepgoing
+  }
+  if tasks["_config"].Stdout && ! flagsSet["-stdout"] {
+    *flagStdout = tasks["_config"].Stdout
+  }
+  if tasks["_config"].Stderr && ! flagsSet["-stderr"] {
+    *flagStderr = tasks["_config"].Stderr
   }
 
   // execute steps
