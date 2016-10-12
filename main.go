@@ -36,14 +36,14 @@ func main() {
 
   for _, v := range flag.Args() {
     vSplited := strings.Split(v, "=")
-    if len(vSplited) < 2 {
+    if len(vSplited) < 2 || string(vSplited[0][0]) == "-" {
       if len(task) == 0 {
-        task = vSplited[0]
+        task = v
       } else {
         if len(defaultCmd) > 0 {
           defaultCmd += " "
         }
-        defaultCmd += vSplited[0]
+        defaultCmd += v
       }
     } else {
       variables[vSplited[0]] = strings.Join(vSplited[1:], "=")
