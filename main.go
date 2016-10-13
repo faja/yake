@@ -8,6 +8,7 @@ import (
   "io/ioutil"
   "os"
   "os/exec"
+  "regexp"
   "strings"
   "syscall"
 )
@@ -109,11 +110,18 @@ func main() {
     *flagStderr = tasks["_config"].Stderr
   }
 
+  // variable regexp
+  r := regexp.MustCompile("\\$[a-zA-Z0-9-_]+")
+
   // execute steps
   for _,command := range tasks[task].Steps {
-    for k,v := range variables {
-      command = strings.Replace(command,"$"+k,v,-1)
+
+    // variables could contain other variables
+    for r.MatchString(command) {
+      m := r.FindString(command)
+      command = strings.Replace(command,m,variables[strings.TrimPrefix(m,"$")],-1)
     }
+
     // CMD variable
     command = strings.Replace(command,"$CMD",defaultCmd,-1)
     fmt.Println(">>>", command)
