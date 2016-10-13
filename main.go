@@ -79,8 +79,13 @@ func main() {
   }
 
   // does task exist?
+  var availableTasks []string
+  for k,_ := range tasks {
+    availableTasks = append(availableTasks,k)
+  }
   if _, ok := tasks[task]; ok != true {
     fmt.Println("Couldn't find task", task, "in the yakefile")
+    fmt.Println("Available tasks:", strings.Join(availableTasks, ", "))
     os.Exit(1)
   }
 
