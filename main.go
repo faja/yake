@@ -32,7 +32,6 @@ func main() {
   // first argument is a task name
   // all other arguments create CMD variable, which can be used in `steps`
   var task string
-  var defaultCmd string
   variables := make(map[string]string)
 
   for _, v := range flag.Args() {
@@ -41,10 +40,10 @@ func main() {
       if len(task) == 0 {
         task = v
       } else {
-        if len(defaultCmd) > 0 {
-          defaultCmd += " "
+        if len(variables["CMD"]) > 0 {
+          variables["CMD"] += " "
         }
-        defaultCmd += v
+        variables["CMD"] += v
       }
     } else {
       variables[vSplited[0]] = strings.Join(vSplited[1:], "=")
@@ -122,8 +121,6 @@ func main() {
       command = strings.Replace(command,m,variables[strings.TrimPrefix(m,"$")],-1)
     }
 
-    // CMD variable
-    command = strings.Replace(command,"$CMD",defaultCmd,-1)
     fmt.Println(">>>", command)
     cmd := exec.Command("sh", "-c", command)
 
