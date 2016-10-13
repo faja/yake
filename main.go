@@ -81,6 +81,9 @@ func main() {
   // does task exist?
   var availableTasks []string
   for k,_ := range tasks {
+    if k == "_config" {
+      continue
+    }
     availableTasks = append(availableTasks,k)
   }
   if _, ok := tasks[task]; ok != true {
