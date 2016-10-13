@@ -116,9 +116,8 @@ func main() {
     }
     // CMD variable
     command = strings.Replace(command,"$CMD",defaultCmd,-1)
-    taskSplitted := strings.Split(command, " ")
     fmt.Println(">>>", command)
-    cmd := exec.Command(taskSplitted[0], taskSplitted[1:]...)
+    cmd := exec.Command("sh", "-c", command)
 
     // output buffers
     cmdStdout := &bytes.Buffer{}
