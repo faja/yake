@@ -9,6 +9,7 @@ import (
   "os"
   "os/exec"
   "regexp"
+  "sort"
   "strings"
   "syscall"
 )
@@ -86,6 +87,7 @@ func main() {
     }
     availableTasks = append(availableTasks,k)
   }
+  sort.Strings(availableTasks)
   if _, ok := tasks[task]; ok != true {
     fmt.Println("Couldn't find task", task, "in the yakefile")
     fmt.Println("Available tasks:", strings.Join(availableTasks, ", "))
