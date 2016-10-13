@@ -15,3 +15,15 @@ task_with_variables:
 task_with_CMD:
   steps:
     - echo $CMD
+
+task_with_global_var:
+  steps:
+    - echo $GLOBAL_VAR
+
+_config:
+  keepgoing: false
+  stdout: true
+  stderr: true
+  vars:
+    GLOBAL_VAR: baz
+    ENV: dev

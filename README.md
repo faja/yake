@@ -56,6 +56,22 @@ task_with_CMD:
 ./yake -file examples/yakefile.yml task_with_CMD 42 42 42
 >>> echo 42 42 42
 ```
+#### task_with_global_var
+```yaml
+task_with_global_var:
+  steps:
+    - echo $GLOBAL_VAR
+
+_config:
+  stdout: true
+  vars:
+    GLOBAL_VAR: baz
+```
+```
+./yake -file examples/yakefile.yml task_with_global_var
+>>> echo baz
+baz
+```
 
 ## flags:
 
