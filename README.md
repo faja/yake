@@ -76,6 +76,7 @@ baz
 ## flags:
 
 * `-file FILENAME` - specify yake file name, default: `Yakefile`
+* `-showcmd` - prints executed commands, default: `true`
 * `-keepgoing` - yake continues to execute all remaining steps even if one of them fails, default: `false`
 * `-stdout` - prints STDOUT of executing steps, default: `false`
-* `-stderr` - print STDERR  of executing steps, default: `false`
+* `-stderr` - prints STDERR  of executing steps, default: `false`
