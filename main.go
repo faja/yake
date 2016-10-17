@@ -120,7 +120,6 @@ func main() {
   if tasks["_config"].Stderr && ! flagsSet["-stderr"] {
     *flagStderr = tasks["_config"].Stderr
   }
-  fmt.Println("aa", tasks["_config"].Showcmd)
   if ! tasks["_config"].Showcmd && ! flagsSet["-showcmd"] {
     *flagShowcmd = tasks["_config"].Showcmd
   }
@@ -145,6 +144,7 @@ func main() {
     // output buffers
     cmdStdout := &bytes.Buffer{}
     cmdStderr := &bytes.Buffer{}
+    cmd.Stdin = os.Stdin
     cmd.Stdout = cmdStdout
     cmd.Stderr = cmdStderr
 
