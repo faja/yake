@@ -21,6 +21,7 @@ func main() {
   flagKeepgoing := flag.Bool("keepgoing", false, "execute remaining steps even one of them fails (default false)")
   flagStdout := flag.Bool("stdout", false, "prints stdout (default false)")
   flagStderr := flag.Bool("stderr", false, "prints stderr (default false)")
+  flagShowcmd := flag.Bool("showcmd", true, "prints executed command")
   flag.Parse()
 
   flagsSet := make(map[string]bool)
@@ -63,6 +64,7 @@ func main() {
     Keepgoing bool
     Stdout bool
     Stderr bool
+    Showcmd bool
   }
 
   // read the yakefile
@@ -118,6 +120,10 @@ func main() {
   if tasks["_config"].Stderr && ! flagsSet["-stderr"] {
     *flagStderr = tasks["_config"].Stderr
   }
+  fmt.Println("aa", tasks["_config"].Showcmd)
+  if ! tasks["_config"].Showcmd && ! flagsSet["-showcmd"] {
+    *flagShowcmd = tasks["_config"].Showcmd
+  }
 
   // variable regexp
   r := regexp.MustCompile("\\$[a-zA-Z0-9-_]+")
@@ -131,7 +137,9 @@ func main() {
       command = strings.Replace(command,m,variables[strings.TrimPrefix(m,"$")],-1)
     }
 
-    fmt.Println(">>>", command)
+    if *flagShowcmd {
+      fmt.Println(">>>", command)
+    }
     cmd := exec.Command("sh", "-c", command)
 
     // output buffers
