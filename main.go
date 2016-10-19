@@ -4,7 +4,6 @@ import (
   "bytes"
   "flag"
   "fmt"
-  "gopkg.in/yaml.v2"
   "io/ioutil"
   "os"
   "os/exec"
@@ -12,9 +11,21 @@ import (
   "sort"
   "strings"
   "syscall"
+  "github.com/smallfish/simpleyaml"
 )
 
 func main() {
+
+  // config struct
+  type config struct {
+    file string
+    keepgoing bool
+    stdout bool
+    stderr bool
+    showcmd bool
+    vars map[string]string
+    steps []string
+  }
 
   // argument parsing
   flagFile := flag.String("file", "Yakefile", "yake file")
@@ -23,6 +34,15 @@ func main() {
   flagStderr := flag.Bool("stderr", false, "prints stderr (default false)")
   flagShowcmd := flag.Bool("showcmd", true, "prints executed command")
   flag.Parse()
+
+  c := config{
+    file: *flagFile,
+    keepgoing: *flagKeepgoing,
+    stdout: *flagStdout,
+    stderr: *flagStderr,
+    showcmd: *flagShowcmd,
+    vars: make(map[string]string),
+  }
 
   flagsSet := make(map[string]bool)
   for _,v := range os.Args[1:flag.NFlag()+1] {
@@ -34,7 +54,6 @@ func main() {
   // first argument is a task name
   // all other arguments create CMD variable, which can be used in `steps`
   var task string
-  variables := make(map[string]string)
 
   for _, v := range flag.Args() {
     vSplited := strings.Split(v, "=")
@@ -42,13 +61,13 @@ func main() {
       if len(task) == 0 {
         task = v
       } else {
-        if len(variables["CMD"]) > 0 {
-          variables["CMD"] += " "
+        if len(c.vars["CMD"]) > 0 {
+          c.vars["CMD"] += " "
         }
-        variables["CMD"] += v
+        c.vars["CMD"] += v
       }
     } else {
-      variables[vSplited[0]] = strings.Join(vSplited[1:], "=")
+      c.vars[vSplited[0]] = strings.Join(vSplited[1:], "=")
     }
   }
   // task name defined?
@@ -68,72 +87,122 @@ func main() {
   }
 
   // read the yakefile
-  yamlfile, err := ioutil.ReadFile(*flagFile)
+  yamlfile, err := ioutil.ReadFile(c.file)
   if err != nil {
     fmt.Println(err.Error())
     os.Exit(1)
   }
 
   // parse yaml file
-  var tasks map[string]Task
-  if err := yaml.Unmarshal(yamlfile, &tasks); err != nil {
+  yamldata, err := simpleyaml.NewYaml(yamlfile)
+  if err != nil {
+    fmt.Println(err.Error())
+    os.Exit(1)
+  }
+
+  // build a yaml map
+  yamlmap, err := yamldata.Map()
+  if err != nil {
     fmt.Println(err.Error())
     os.Exit(1)
   }
 
   // does task exist?
-  var availableTasks []string
-  for k,_ := range tasks {
-    if k == "_config" {
-      continue
+  if _, ok := yamlmap[task]; !ok {
+    var availableTasks []string
+    for k,_ := range yamlmap {
+      if k == "_config" {
+        continue
+      }
+      switch k.(type) {
+      case string:
+        availableTasks = append(availableTasks,k.(string))
+      default:
+      }
     }
-    availableTasks = append(availableTasks,k)
-  }
-  sort.Strings(availableTasks)
-  if _, ok := tasks[task]; ok != true {
+    sort.Strings(availableTasks)
     fmt.Println("Couldn't find task", task, "in the yakefile")
     fmt.Println("Available tasks:", strings.Join(availableTasks, ", "))
     os.Exit(1)
   }
 
-  // use default variable value from task definition if not specified in command line
-  for k,v := range tasks[task].Vars {
-    if _, ok := variables[k]; ok != true {
-      variables[k] = v
+  // parsin _config section
+  if _, ok := yamlmap["_config"]; ok {
+
+    // bools parsing
+    // TODO: fix this ugly duplicated code
+    // keepgoing
+    v, err := yamldata.Get("_config").Get("keepgoing").Bool()
+    if err == nil {
+      if ! flagsSet["-keepgoing"] {
+        c.keepgoing = v
+      }
+    }
+    // stdout
+    v, err = yamldata.Get("_config").Get("stdout").Bool()
+    if err == nil {
+      if ! flagsSet["-stdout"] {
+        c.stdout = v
+      }
+    }
+    // stderr
+    v, err = yamldata.Get("_config").Get("stderr").Bool()
+    if err == nil {
+      if ! flagsSet["-stderr"] {
+        c.stderr = v
+      }
+    }
+    // showcmd
+    v, err = yamldata.Get("_config").Get("showcmd").Bool()
+    if err == nil {
+      if ! flagsSet["-showcmd"] {
+        c.showcmd = v
+      }
+    }
+
+    // vars parsing
+    vars, err := yamldata.Get("_config").Get("vars").Map()
+    if err == nil {
+      for k,v := range vars {
+        switch k.(type) {
+        case string:
+          kstring := k.(string)
+          // use default variable from _config if not specified on command line
+          if _, ok := c.vars[kstring]; ok != true {
+            c.vars[kstring] = v.(string)
+          }
+        default:
+        }
+      }
     }
   }
 
-  // use default variable from _config if not specified anywhere else
-  for k,v := range tasks["_config"].Vars {
-    if _, ok := variables[k]; ok != true {
-      variables[k] = v
+  // parsin task
+  switch yamlmap[task].(type) {
+  case string:
+    step, _ := yamldata.Get(task).String()
+    c.steps = append(c.steps, step)
+  case []interface{}:
+    steps, _ := yamldata.Get(task).Array()
+    for _, step := range steps {
+      switch step.(type) {
+      case string:
+        c.steps = append(c.steps, step.(string))
+      }
     }
-  }
-
-  // _config parsing
-  if tasks["_config"].Keepgoing && ! flagsSet["-keepgoing"] {
-    *flagKeepgoing = tasks["_config"].Keepgoing
-  }
-  if tasks["_config"].Stdout && ! flagsSet["-stdout"] {
-    *flagStdout = tasks["_config"].Stdout
-  }
-  if tasks["_config"].Stderr && ! flagsSet["-stderr"] {
-    *flagStderr = tasks["_config"].Stderr
-  }
-  if ! tasks["_config"].Showcmd && ! flagsSet["-showcmd"] {
-    *flagShowcmd = tasks["_config"].Showcmd
+  default:
   }
 
   // variable regexp
   r := regexp.MustCompile("\\$[a-zA-Z0-9-_]+")
 
   // execute steps
-  for _,command := range tasks[task].Steps {
+  for _,command := range c.steps {
 
     // variables could contain other variables
     for r.MatchString(command) {
       m := r.FindString(command)
-      command = strings.Replace(command,m,variables[strings.TrimPrefix(m,"$")],-1)
+      command = strings.Replace(command,m,c.vars[strings.TrimPrefix(m,"$")],-1)
     }
 
     if *flagShowcmd {
