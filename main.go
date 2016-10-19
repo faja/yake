@@ -205,7 +205,7 @@ func main() {
       command = strings.Replace(command,m,c.vars[strings.TrimPrefix(m,"$")],-1)
     }
 
-    if *flagShowcmd {
+    if c.showcmd {
       fmt.Println(">>>", command)
     }
     cmd := exec.Command("sh", "-c", command)
@@ -220,21 +220,21 @@ func main() {
     err := cmd.Run()
 
     // print stdout
-    if *flagStdout {
+    if c.stdout {
       if len(cmdStdout.Bytes()) > 0 {
         fmt.Printf("%s\n", cmdStdout.Bytes())
       }
     }
 
     // print stderr
-    if *flagStderr {
+    if c.stderr {
       if len(cmdStderr.Bytes()) > 0 {
         os.Stderr.WriteString(fmt.Sprintf("%s\n", cmdStderr.Bytes()))
       }
     }
 
     // keepgoing?
-    if err != nil && ! *flagKeepgoing {
+    if err != nil && ! c.keepgoing {
       os.Stderr.WriteString(fmt.Sprintf("%s\n", err.Error()))
       os.Exit(cmd.ProcessState.Sys().(syscall.WaitStatus).ExitStatus())
     }
