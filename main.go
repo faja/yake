@@ -19,10 +19,7 @@ func main() {
   // config struct
   type config struct {
     file string
-    keepgoing bool
-    stdout bool
-    stderr bool
-    showcmd bool
+    flags map[string]bool
     vars map[string]string
     steps []string
   }
@@ -37,12 +34,13 @@ func main() {
 
   c := config{
     file: *flagFile,
-    keepgoing: *flagKeepgoing,
-    stdout: *flagStdout,
-    stderr: *flagStderr,
-    showcmd: *flagShowcmd,
+    flags: make(map[string]bool),
     vars: make(map[string]string),
   }
+  c.flags["keepgoing"] = *flagKeepgoing
+  c.flags["stdout"] = *flagStdout
+  c.flags["stderr"] = *flagStderr
+  c.flags["showcmd"] = *flagShowcmd
 
   flagsSet := make(map[string]bool)
   for _,v := range os.Args[1:flag.NFlag()+1] {
@@ -130,33 +128,13 @@ func main() {
   if _, ok := yamlmap["_config"]; ok {
 
     // bools parsing
-    // TODO: fix this ugly duplicated code
-    // keepgoing
-    v, err := yamldata.Get("_config").Get("keepgoing").Bool()
-    if err == nil {
-      if ! flagsSet["-keepgoing"] {
-        c.keepgoing = v
-      }
-    }
-    // stdout
-    v, err = yamldata.Get("_config").Get("stdout").Bool()
-    if err == nil {
-      if ! flagsSet["-stdout"] {
-        c.stdout = v
-      }
-    }
-    // stderr
-    v, err = yamldata.Get("_config").Get("stderr").Bool()
-    if err == nil {
-      if ! flagsSet["-stderr"] {
-        c.stderr = v
-      }
-    }
-    // showcmd
-    v, err = yamldata.Get("_config").Get("showcmd").Bool()
-    if err == nil {
-      if ! flagsSet["-showcmd"] {
-        c.showcmd = v
+    bools := []string{"keepgoing", "stdout", "stderr", "showcmd"}
+    for _,v := range bools {
+      vv, err := yamldata.Get("_config").Get(v).Bool()
+      if err == nil {
+        if ! flagsSet[fmt.Sprintf("-%s",v)] {
+          c.flags[v] = vv
+        }
       }
     }
 
@@ -205,7 +183,7 @@ func main() {
       command = strings.Replace(command,m,c.vars[strings.TrimPrefix(m,"$")],-1)
     }
 
-    if c.showcmd {
+    if c.flags["showcmd"] {
       fmt.Println(">>>", command)
     }
     cmd := exec.Command("sh", "-c", command)
@@ -220,22 +198,22 @@ func main() {
     err := cmd.Run()
 
     // print stdout
-    if c.stdout {
+    if c.flags["stdout"] {
       if len(cmdStdout.Bytes()) > 0 {
         fmt.Printf("%s\n", cmdStdout.Bytes())
       }
     }
 
     // print stderr
-    if c.stderr {
+    if c.flags["stderr"] {
       if len(cmdStderr.Bytes()) > 0 {
         os.Stderr.WriteString(fmt.Sprintf("%s\n", cmdStderr.Bytes()))
       }
     }
 
     // keepgoing?
-    if err != nil && ! c.keepgoing {
-      if c.showcmd {
+    if err != nil && ! c.flags["keepgoing"] {
+      if c.flags["showcmd"] {
         os.Stderr.WriteString(fmt.Sprintf("%s\n", err.Error()))
       }
       os.Exit(cmd.ProcessState.Sys().(syscall.WaitStatus).ExitStatus())
