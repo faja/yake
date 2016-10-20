@@ -26,10 +26,10 @@ func main() {
 
   // argument parsing
   flagFile := flag.String("file", "Yakefile", "yake file")
-  flagKeepgoing := flag.Bool("keepgoing", false, "execute remaining steps even one of them fails (default false)")
-  flagStdout := flag.Bool("stdout", false, "prints stdout (default false)")
-  flagStderr := flag.Bool("stderr", false, "prints stderr (default false)")
-  flagShowcmd := flag.Bool("showcmd", true, "prints executed command")
+  flagKeepgoing := flag.Bool("keepgoing", true, "execute remaining steps even one of them fails (default false)")
+  flagStdout := flag.Bool("stdout", true, "prints stdout (default false)")
+  flagStderr := flag.Bool("stderr", true, "prints stderr (default false)")
+  flagShowcmd := flag.Bool("showcmd", false, "prints executed command")
   flag.Parse()
 
   c := config{
