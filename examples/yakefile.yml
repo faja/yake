@@ -1,29 +1,19 @@
 simple_task:
-  steps:
     - echo hello yake
     - uptime
     - date
 
 task_with_variables:
-  steps:
     - cp /tmp/$NAME.yml.tar .
     - tar -xvf $NAME.yml.tar
     - ls $NAME.yml
-  vars:
-    NAME: foo
 
-task_with_CMD:
-  steps:
-    - echo $CMD
-
-task_with_global_var:
-  steps:
-    - echo $GLOBAL_VAR
+task_with_CMD: echo $CMD
 
 _config:
   keepgoing: false
   stdout: true
   stderr: true
   vars:
-    GLOBAL_VAR: baz
+    NAME: foo
     ENV: dev

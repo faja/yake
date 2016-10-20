@@ -1,15 +1,17 @@
 yake = **Y**et**A**notherma**K**eclon**E**
 
-## example usage:
-`yake -file Yakefile.yml -stdout [SOMEVAR=foo] taskname [CMD argumets here]`
+## usage:
+`yake [flags] [variable_definition] taskname [CMD_arguments]
+eg:
+* `yake taskename`
+* `yake -file Yakefile.yml -stdout SOMEVAR=foo taskname foo bar`
 
 #### simple_task
 ```yaml
 simple_task:
-  steps:
-    - echo hello yake
-    - uptime
-    - date
+  - echo hello yake
+  - uptime
+  - date
 ```
 ```
 % ./yake -file examples/yakefile.yml -stdout -stderr simple_task
@@ -19,17 +21,18 @@ hello yake
 >>> uptime
  11:14:02 up  1:12,  9 users,  load average: 0.37, 0.32, 0.35
 
- >>> date
- Tue 11 Oct 11:14:02 BST 2016
+>>> date
+Tue 11 Oct 11:14:02 BST 2016
 
 ```
 #### task_with_variables
 ```yaml
 task_with_variables:
-  steps:
-    - cp /tmp/$NAME.yml.tar .
-    - tar -xvf $NAME.yml.tar
-    - ls $NAME.yml
+  - cp /tmp/$NAME.yml.tar .
+  - tar -xvf $NAME.yml.tar
+  - ls $NAME.yml
+
+_config:
   vars:
     NAME: foo
 ```
@@ -40,7 +43,7 @@ task_with_variables:
 >>> ls foo.yml
 ```
 ```
-./yake -file examples/yakefile.yml task_with_variables NAME=bar
+./yake -file examples/yakefile.yml NAME=bar task_with_variables
 >>> cp /tmp/bar.yml.tar .
 >>> tar -xvf bar.yml.tar
 >>> ls bar.yml
@@ -49,28 +52,11 @@ task_with_variables:
 #### task_with_CMD
 ```yaml
 task_with_CMD:
-  steps:
-    - echo $CMD
+  - echo $CMD
 ```
 ```
 ./yake -file examples/yakefile.yml task_with_CMD 42 42 42
 >>> echo 42 42 42
-```
-#### task_with_global_var
-```yaml
-task_with_global_var:
-  steps:
-    - echo $GLOBAL_VAR
-
-_config:
-  stdout: true
-  vars:
-    GLOBAL_VAR: baz
-```
-```
-./yake -file examples/yakefile.yml task_with_global_var
->>> echo baz
-baz
 ```
 
 ## flags:
