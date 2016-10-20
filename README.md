@@ -1,7 +1,7 @@
 yake = **Y**et**A**notherma**K**eclon**E**
 
 ## usage:
-`yake [flags] [variable_definition] taskname [CMD_arguments]
+`yake [flags] [variable_definition] taskname [CMD_arguments]`
 eg:
 * `yake taskename`
 * `yake -file Yakefile.yml -stdout SOMEVAR=foo taskname foo bar`
