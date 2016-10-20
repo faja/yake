@@ -4,6 +4,7 @@ import (
   "bytes"
   "flag"
   "fmt"
+  "github.com/smallfish/simpleyaml"
   "io/ioutil"
   "os"
   "os/exec"
@@ -11,16 +12,15 @@ import (
   "sort"
   "strings"
   "syscall"
-  "github.com/smallfish/simpleyaml"
 )
 
 func main() {
 
   // config struct
   type config struct {
-    file string
+    file  string
     flags map[string]bool
-    vars map[string]string
+    vars  map[string]string
     steps []string
   }
 
@@ -33,9 +33,9 @@ func main() {
   flag.Parse()
 
   c := config{
-    file: *flagFile,
+    file:  *flagFile,
     flags: make(map[string]bool),
-    vars: make(map[string]string),
+    vars:  make(map[string]string),
   }
   c.flags["keepgoing"] = *flagKeepgoing
   c.flags["stdout"] = *flagStdout
@@ -44,7 +44,7 @@ func main() {
   c.vars["BIN"] = os.Args[0]
 
   flagsSet := make(map[string]bool)
-  for _,v := range os.Args[1:flag.NFlag()+1] {
+  for _, v := range os.Args[1 : flag.NFlag()+1] {
     flagsSet[strings.Split(v, "=")[0]] = true
   }
 
@@ -60,7 +60,7 @@ func main() {
       if len(vSplited) > 1 {
         c.vars[vSplited[0]] = strings.Join(vSplited[1:], "=")
         c.vars["BIN"] += fmt.Sprintf(" %s", v)
-      } else{
+      } else {
         task = v
       }
     } else {
@@ -79,12 +79,12 @@ func main() {
 
   // YAML file struct
   type Task struct {
-    Steps []string
-    Vars map[string]string
+    Steps     []string
+    Vars      map[string]string
     Keepgoing bool
-    Stdout bool
-    Stderr bool
-    Showcmd bool
+    Stdout    bool
+    Stderr    bool
+    Showcmd   bool
   }
 
   // read the yakefile
@@ -111,13 +111,13 @@ func main() {
   // does task exist?
   if _, ok := yamlmap[task]; !ok {
     var availableTasks []string
-    for k,_ := range yamlmap {
+    for k, _ := range yamlmap {
       if k == "_config" {
         continue
       }
       switch k.(type) {
       case string:
-        availableTasks = append(availableTasks,k.(string))
+        availableTasks = append(availableTasks, k.(string))
       default:
       }
     }
@@ -132,10 +132,10 @@ func main() {
 
     // bools parsing
     bools := []string{"keepgoing", "stdout", "stderr", "showcmd"}
-    for _,v := range bools {
+    for _, v := range bools {
       vv, err := yamldata.Get("_config").Get(v).Bool()
       if err == nil {
-        if ! flagsSet[fmt.Sprintf("-%s",v)] {
+        if !flagsSet[fmt.Sprintf("-%s", v)] {
           c.flags[v] = vv
         }
       }
@@ -144,7 +144,7 @@ func main() {
     // vars parsing
     vars, err := yamldata.Get("_config").Get("vars").Map()
     if err == nil {
-      for k,v := range vars {
+      for k, v := range vars {
         switch k.(type) {
         case string:
           kstring := k.(string)
@@ -178,12 +178,12 @@ func main() {
   r := regexp.MustCompile("\\$[a-zA-Z0-9-_]+")
 
   // execute steps
-  for _,command := range c.steps {
+  for _, command := range c.steps {
 
     // variables could contain other variables
     for r.MatchString(command) {
       m := r.FindString(command)
-      command = strings.Replace(command,m,c.vars[strings.TrimPrefix(m,"$")],-1)
+      command = strings.Replace(command, m, c.vars[strings.TrimPrefix(m, "$")], -1)
     }
 
     if c.flags["showcmd"] {
@@ -215,7 +215,7 @@ func main() {
     }
 
     // keepgoing?
-    if err != nil && ! c.flags["keepgoing"] {
+    if err != nil && !c.flags["keepgoing"] {
       if c.flags["showcmd"] {
         os.Stderr.WriteString(fmt.Sprintf("%s\n", err.Error()))
       }
