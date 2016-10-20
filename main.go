@@ -41,6 +41,7 @@ func main() {
   c.flags["stdout"] = *flagStdout
   c.flags["stderr"] = *flagStderr
   c.flags["showcmd"] = *flagShowcmd
+  c.vars["BIN"] = os.Args[0]
 
   flagsSet := make(map[string]bool)
   for _,v := range os.Args[1:flag.NFlag()+1] {
@@ -58,6 +59,7 @@ func main() {
       vSplited := strings.Split(v, "=")
       if len(vSplited) > 1 {
         c.vars[vSplited[0]] = strings.Join(vSplited[1:], "=")
+        c.vars["BIN"] += fmt.Sprintf(" %s", v)
       } else{
         task = v
       }
