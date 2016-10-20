@@ -235,7 +235,9 @@ func main() {
 
     // keepgoing?
     if err != nil && ! c.keepgoing {
-      os.Stderr.WriteString(fmt.Sprintf("%s\n", err.Error()))
+      if c.showcmd {
+        os.Stderr.WriteString(fmt.Sprintf("%s\n", err.Error()))
+      }
       os.Exit(cmd.ProcessState.Sys().(syscall.WaitStatus).ExitStatus())
     }
   }
