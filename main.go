@@ -54,20 +54,21 @@ func main() {
   var task string
 
   for _, v := range flag.Args() {
-    vSplited := strings.Split(v, "=")
-    if len(vSplited) < 2 || string(vSplited[0][0]) == "-" {
-      if len(task) == 0 {
+    if len(task) == 0 {
+      vSplited := strings.Split(v, "=")
+      if len(vSplited) > 1 {
+        c.vars[vSplited[0]] = strings.Join(vSplited[1:], "=")
+      } else{
         task = v
-      } else {
-        if len(c.vars["CMD"]) > 0 {
-          c.vars["CMD"] += " "
-        }
-        c.vars["CMD"] += v
       }
     } else {
-      c.vars[vSplited[0]] = strings.Join(vSplited[1:], "=")
+      if len(c.vars["CMD"]) > 0 {
+        c.vars["CMD"] += " "
+      }
+      c.vars["CMD"] += v
     }
   }
+
   // task name defined?
   if len(task) == 0 {
     fmt.Println("Please specify task name")
