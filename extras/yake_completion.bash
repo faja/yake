@@ -1,12 +1,18 @@
 _yake() {
-  YAKEFILE="Yakefile"
+  YAKEFILE=$(echo $COMP_LINE | awk 'match($0, / -file[ =]([^ ]+)/, awkrules) {print awkrules[1]}')
+  YAKEFILE=${YAKEFILE:-Yakefile}
   local opts
   case "${COMP_WORDS[COMP_CWORD-1]}" in
+    -file)
+       local IFS=$'\n'
+       COMPREPLY=( $( compgen -o plusdirs  -f  -- ${COMP_WORDS[COMP_CWORD]} ) )
+       return 0
+      ;;
     *)
       opts=""
-      if test -f $YAKEFILE
+      if test -f "$YAKEFILE"
       then
-        opts=$(awk -F: '/^\S/ {print $1}' $YAKEFILE)
+        opts=$(awk -F: '/^\S/ {print $1}' "$YAKEFILE")
       fi
       ;;
   esac
@@ -14,4 +20,4 @@ _yake() {
   return 0
 }
 
-complete -F _yake yake
+complete -o filenames -F _yake yake
